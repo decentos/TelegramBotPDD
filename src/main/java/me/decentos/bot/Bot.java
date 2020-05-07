@@ -1,7 +1,9 @@
 package me.decentos.bot;
 
 import lombok.SneakyThrows;
+import me.decentos.model.Option;
 import me.decentos.model.Question;
+import me.decentos.service.OptionService;
 import me.decentos.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,11 +19,13 @@ public class Bot extends TelegramLongPollingBot {
 
     private final Button button;
     private final QuestionService questionService;
+    private final OptionService optionService;
 
     @Autowired
-    public Bot(Button button, QuestionService questionService) {
+    public Bot(Button button, QuestionService questionService, OptionService optionService) {
         this.button = button;
         this.questionService = questionService;
+        this.optionService = optionService;
     }
 
     @Override
@@ -67,9 +71,17 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     private synchronized void sendQuestion(Long chatId, List<Question> questions) {
-        for (Question question : questions) {
-            SendMessage sendMessage = sendMessageConfig(chatId, question.getQuestionTitle());
-            execute(sendMessage);
+        for (Question q : questions) {
+            SendMessage sendQuestion = sendMessageConfig(chatId, q.getQuestionTitle());
+            execute(sendQuestion);
+            List<Option> options = optionService.findOptionsByQuestionId(q.getId());
+            for (Option o : options) {
+                SendMessage sendOption = sendMessageConfig(chatId, o.getOptionTitle());
+                execute(sendOption);
+            }
+            // TODO дождаться ответа, чтобы прислать следующий вопрос
+            // TODO динамическое наполнение кнопок с вариантами ответа
+            break;
         }
     }
 
