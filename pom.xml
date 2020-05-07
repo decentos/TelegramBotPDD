@@ -39,8 +39,8 @@
         </dependency>
         <dependency>
             <groupId>org.telegram</groupId>
-            <artifactId>telegrambots</artifactId>
-            <version>3.6</version>
+            <artifactId>telegrambots-spring-boot-starter</artifactId>
+            <version>4.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
