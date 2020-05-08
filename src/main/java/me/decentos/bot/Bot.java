@@ -40,7 +40,6 @@ public class Bot extends TelegramLongPollingBot {
         return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
     }
 
-    // TODO эмодзи на ответные сообщения
     // TODO Подгрузка фотографий
 
     private List<Question> questions;
@@ -55,11 +54,11 @@ public class Bot extends TelegramLongPollingBot {
         String text = message.getText();
 
         if (text.equals("/start")) {
-            sendMessage(chatId, "Выберите номер билета", message);
+            sendMessage(chatId, "\uD83D\uDCA1 Выберите номер билета:", message);
         } else if (text.matches("№\\s\\d*")) {
             int ticket = Integer.parseInt(text.substring(2));
             questions = questionService.findQuestionsByTicket(ticket);
-            sendMessage(chatId, "Вы выбрали билет №" + text.substring(1), message);
+            sendMessage(chatId, "\uD83D\uDC8E Вы выбрали билет №" + text.substring(1), message);
             sendQuestion(chatId, questions.get(questionNumber));
         } else if (text.matches("\\d*")) {
             checkAnswer(chatId, text, questions.get(questionNumber));
@@ -87,7 +86,8 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     private synchronized void sendQuestion(Long chatId, Question question) {
-        SendMessage sendQuestion = sendMessageConfig(chatId, question.getQuestionTitle());
+        String questionTitle = "❓" + question.getQuestionTitle();
+        SendMessage sendQuestion = sendMessageConfig(chatId, questionTitle);
         List<Option> options = optionService.findOptionsByQuestionId(question.getId());
         button.setAnswerButtons(sendQuestion, options.size());
         execute(sendQuestion);
@@ -114,9 +114,9 @@ public class Bot extends TelegramLongPollingBot {
         String answer;
         if (isCorrect == 1) {
             correctCount++;
-            answer = "Верно!";
+            answer = "✅ Верно!";
         } else {
-            answer = "Ошибка! Правильный ответ №" + correctOption;
+            answer = "❌ Ошибка! Правильный ответ №" + correctOption;
         }
         SendMessage sendAnswer = sendMessageConfig(chatId, answer);
         execute(sendAnswer);
@@ -125,7 +125,8 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     private synchronized void sendComment(Long chatId, Question question) {
-        SendMessage sendComment = sendMessageConfig(chatId, question.getComment());
+        String comment = "\uD83D\uDCAD " + question.getComment();
+        SendMessage sendComment = sendMessageConfig(chatId, comment);
         execute(sendComment);
         sleep(3_000);
     }
@@ -134,9 +135,9 @@ public class Bot extends TelegramLongPollingBot {
     private void sendResult(Long chatId, int correctCount) {
         String result;
         if (correctCount > 17) {
-            result = "Поздравляем с успешно пройденным тестированием!\nКоличество правильных ответов: " + correctCount + " из 20 вопросов.";
+            result = "\uD83C\uDFC6 Поздравляем с успешно пройденным тестированием!\nКоличество правильных ответов: " + correctCount + " из 20 вопросов.";
         } else {
-            result = "Тестирование не пройдено!\nКоличество правильных ответов: " + correctCount + " из 20 вопросов.";
+            result = "\uD83D\uDC4E Тестирование не пройдено!\nКоличество правильных ответов: " + correctCount + " из 20 вопросов.";
         }
         SendMessage sendResult = sendMessageConfig(chatId, result);
         button.setTicketButtons(sendResult);
