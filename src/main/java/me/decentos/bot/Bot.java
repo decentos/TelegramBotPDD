@@ -38,8 +38,14 @@ public class Bot extends TelegramLongPollingBot {
         return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
     }
 
+    // TODO количество правильных ответов
+    // TODO эмодзи на ответные сообщения
+    // TODO задержки после сообщений
+    // TODO Подгрузка фотографий
+
     private List<Question> questions;
     private int questionNumber = 0;
+    private int correctCount = 0;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -59,9 +65,13 @@ public class Bot extends TelegramLongPollingBot {
                 checkAnswer(chatId, text, questions.get(questionNumber));
                 sendComment(chatId, questions.get(questionNumber));
                 questionNumber++;
-                if (questionNumber < questions.size()) sendQuestion(chatId, questions.get(questionNumber));
-                // TODO количество правильных ответов
-                // TODO эмодзи на ответные сообщения
+                if (questionNumber < questions.size()) {
+                    sendQuestion(chatId, questions.get(questionNumber));
+                } else {
+                    sendResult(chatId, correctCount);
+                    questionNumber = 0;
+                    correctCount = 0;
+                }
             }
         }
     }
@@ -99,7 +109,13 @@ public class Bot extends TelegramLongPollingBot {
                                 .findFirst().
                                 orElseThrow()
                 ) + 1;
-        String answer = isCorrect == 1 ? "Верно!" : "Ошибка! Правильный ответ №" + correctOption;
+        String answer;
+        if (isCorrect == 1) {
+            correctCount++;
+            answer = "Верно!";
+        } else {
+            answer = "Ошибка! Правильный ответ №" + correctOption;
+        }
         SendMessage sendAnswer = sendMessageConfig(chatId, answer);
         execute(sendAnswer);
     }
@@ -108,6 +124,19 @@ public class Bot extends TelegramLongPollingBot {
     private synchronized void sendComment(Long chatId, Question question) {
         SendMessage sendComment = sendMessageConfig(chatId, question.getComment());
         execute(sendComment);
+    }
+
+    @SneakyThrows
+    private void sendResult(Long chatId, int correctCount) {
+        String result;
+        if (correctCount > 17) {
+            result = "Поздравляем с успешно пройденным тестированием!\nКоличество правильных ответов: " + correctCount + " из 20 вопросов.";
+        } else {
+            result = "Тестирование не пройдено!\nКоличество правильных ответов: " + correctCount + " из 20 вопросов.";
+        }
+        SendMessage sendResult = sendMessageConfig(chatId, result);
+        button.setTicketButtons(sendResult);
+        execute(sendResult);
     }
 
     private synchronized SendMessage sendMessageConfig(Long chatId, String text) {
