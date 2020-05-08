@@ -63,8 +63,6 @@ public class Bot extends TelegramLongPollingBot {
         SendMessage sendMessage = sendMessageConfig(chatId, text);
         if (message.getText().equals("/start")) {
             button.setTicketButtons(sendMessage);
-        } else if (message.getText().matches("№\\s\\d*")) {
-            button.setAnswerButtons(sendMessage);
         }
         execute(sendMessage);
     }
@@ -73,14 +71,14 @@ public class Bot extends TelegramLongPollingBot {
     private synchronized void sendQuestion(Long chatId, List<Question> questions) {
         for (Question q : questions) {
             SendMessage sendQuestion = sendMessageConfig(chatId, q.getQuestionTitle());
-            execute(sendQuestion);
             List<Option> options = optionService.findOptionsByQuestionId(q.getId());
+            button.setAnswerButtons(sendQuestion, options.size());
+            execute(sendQuestion);
             for (Option o : options) {
                 SendMessage sendOption = sendMessageConfig(chatId, o.getOptionTitle());
                 execute(sendOption);
             }
             // TODO дождаться ответа, чтобы прислать следующий вопрос
-            // TODO динамическое наполнение кнопок с вариантами ответа
             break;
         }
     }

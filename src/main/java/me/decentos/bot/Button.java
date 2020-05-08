@@ -40,18 +40,21 @@ public class Button {
         replyKeyboardMarkup.setKeyboard(keyboard);
     }
 
-    public synchronized void setAnswerButtons(SendMessage sendMessage) {
+    public synchronized void setAnswerButtons(SendMessage sendMessage, int count) {
         val replyKeyboardMarkup = new ReplyKeyboardMarkup();
         val keyboard = createKeyboardTemplate(replyKeyboardMarkup, sendMessage);
-
         val keyboardFirstRow = new KeyboardRow();
-        fillKeyboard(keyboardFirstRow, 1, 2, false);
 
-        val keyboardSecondRow = new KeyboardRow();
-        fillKeyboard(keyboardSecondRow, 3, 2, false);
-
-        keyboard.add(keyboardFirstRow);
-        keyboard.add(keyboardSecondRow);
+        if (count <= 3) {
+            fillKeyboard(keyboardFirstRow, 1, count, false);
+            keyboard.add(keyboardFirstRow);
+        } else {
+            fillKeyboard(keyboardFirstRow, 1, 2, false);
+            val keyboardSecondRow = new KeyboardRow();
+            fillKeyboard(keyboardSecondRow, 3, count - 2, false);
+            keyboard.add(keyboardFirstRow);
+            keyboard.add(keyboardSecondRow);
+        }
         replyKeyboardMarkup.setKeyboard(keyboard);
     }
 
@@ -67,8 +70,7 @@ public class Button {
         for (int i = 0; i < countButton; i++) {
             if (isTicket) {
                 keyboardRow.add(new KeyboardButton(String.format("№ %d", initValue)));
-            }
-            else {
+            } else {
                 keyboardRow.add(new KeyboardButton(String.valueOf(initValue)));
             }
             initValue++;
