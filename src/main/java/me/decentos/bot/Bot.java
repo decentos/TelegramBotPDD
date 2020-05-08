@@ -57,6 +57,7 @@ public class Bot extends TelegramLongPollingBot {
                 sendQuestion(chatId, questions.get(questionNumber));
             } else if (text.matches("\\d*")) {
                 checkAnswer(chatId, text, questions.get(questionNumber));
+                sendComment(chatId, questions.get(questionNumber));
                 questionNumber++;
                 sendQuestion(chatId, questions.get(questionNumber));
             }
@@ -99,6 +100,12 @@ public class Bot extends TelegramLongPollingBot {
         String answer = isCorrect == 1 ? "Верно!" : "Ошибка! Правильный ответ №" + correctOption;
         SendMessage sendAnswer = sendMessageConfig(chatId, answer);
         execute(sendAnswer);
+    }
+
+    @SneakyThrows
+    private synchronized void sendComment(Long chatId, Question question) {
+        SendMessage sendComment = sendMessageConfig(chatId, question.getComment());
+        execute(sendComment);
     }
 
     private synchronized SendMessage sendMessageConfig(Long chatId, String text) {
