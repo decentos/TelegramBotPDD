@@ -38,6 +38,9 @@ public class Bot extends TelegramLongPollingBot {
         return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
     }
 
+    private List<Question> questions;
+    private int questionNumber = 0;
+
     @Override
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
@@ -49,11 +52,13 @@ public class Bot extends TelegramLongPollingBot {
                 sendMessage(chatId, "Выберите номер билета", message);
             } else if (text.matches("№\\s\\d*")) {
                 int ticket = Integer.parseInt(text.substring(2));
-                List<Question> questions = questionService.findQuestionsByTicket(ticket);
+                questions = questionService.findQuestionsByTicket(ticket);
                 sendMessage(chatId, "Вы выбрали билет №" + text.substring(1), message);
-                sendQuestion(chatId, questions);
-            } else {
-                sendMessage(chatId, text, message);
+                sendQuestion(chatId, questions.get(questionNumber));
+            } else if (text.matches("\\d*")) {
+                checkAnswer(chatId, text, questions.get(questionNumber));
+                questionNumber++;
+                sendQuestion(chatId, questions.get(questionNumber));
             }
         }
     }
@@ -68,19 +73,32 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @SneakyThrows
-    private synchronized void sendQuestion(Long chatId, List<Question> questions) {
-        for (Question q : questions) {
-            SendMessage sendQuestion = sendMessageConfig(chatId, q.getQuestionTitle());
-            List<Option> options = optionService.findOptionsByQuestionId(q.getId());
-            button.setAnswerButtons(sendQuestion, options.size());
-            execute(sendQuestion);
-            for (Option o : options) {
-                SendMessage sendOption = sendMessageConfig(chatId, o.getOptionTitle());
-                execute(sendOption);
-            }
-            // TODO дождаться ответа, чтобы прислать следующий вопрос
-            break;
+    private synchronized void sendQuestion(Long chatId, Question question) {
+        SendMessage sendQuestion = sendMessageConfig(chatId, question.getQuestionTitle());
+        List<Option> options = optionService.findOptionsByQuestionId(question.getId());
+        button.setAnswerButtons(sendQuestion, options.size());
+        execute(sendQuestion);
+        for (Option o : options) {
+            SendMessage sendOption = sendMessageConfig(chatId, o.getOptionTitle());
+            execute(sendOption);
         }
+    }
+
+    @SneakyThrows
+    private synchronized void checkAnswer(Long chatId, String text, Question question) {
+        List<Option> options = optionService.findOptionsByQuestionId(question.getId());
+        int isCorrect = options.get(Integer.parseInt(text) - 1).getIsCorrect();
+        int correctOption = options
+                .indexOf(
+                        options
+                                .stream()
+                                .filter(o -> o.getIsCorrect() == 1)
+                                .findFirst().
+                                orElseThrow()
+                ) + 1;
+        String answer = isCorrect == 1 ? "Верно!" : "Ошибка! Правильный ответ №" + correctOption;
+        SendMessage sendAnswer = sendMessageConfig(chatId, answer);
+        execute(sendAnswer);
     }
 
     private synchronized SendMessage sendMessageConfig(Long chatId, String text) {
