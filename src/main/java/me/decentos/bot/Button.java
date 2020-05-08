@@ -3,6 +3,7 @@ package me.decentos.bot;
 import lombok.val;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -43,8 +44,21 @@ public class Button {
     public synchronized void setAnswerButtons(SendMessage sendMessage, int count) {
         val replyKeyboardMarkup = new ReplyKeyboardMarkup();
         val keyboard = createKeyboardTemplate(replyKeyboardMarkup, sendMessage);
-        val keyboardFirstRow = new KeyboardRow();
+        createButtons(count, replyKeyboardMarkup, keyboard);
+    }
 
+    public synchronized void setAnswerButtonsByPhoto(SendPhoto sendPhoto, int count) {
+        val replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        sendPhoto.setReplyMarkup(replyKeyboardMarkup);
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false);
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        createButtons(count, replyKeyboardMarkup, keyboard);
+    }
+
+    private void createButtons(int count, ReplyKeyboardMarkup replyKeyboardMarkup, List<KeyboardRow> keyboard) {
+        val keyboardFirstRow = new KeyboardRow();
         if (count <= 3) {
             fillKeyboard(keyboardFirstRow, 1, count, false);
             keyboard.add(keyboardFirstRow);

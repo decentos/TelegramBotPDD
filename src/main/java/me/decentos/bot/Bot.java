@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
@@ -40,7 +42,7 @@ public class Bot extends TelegramLongPollingBot {
         return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
     }
 
-    // TODO Подгрузка фотографий
+    // TODO Подгрузка фотографий для комментариев
 
     private List<Question> questions;
     private int questionNumber = 0;
@@ -87,10 +89,20 @@ public class Bot extends TelegramLongPollingBot {
     @SneakyThrows
     private synchronized void sendQuestion(Long chatId, Question question) {
         String questionTitle = "❓" + question.getQuestionTitle();
-        SendMessage sendQuestion = sendMessageConfig(chatId, questionTitle);
         List<Option> options = optionService.findOptionsByQuestionId(question.getId());
-        button.setAnswerButtons(sendQuestion, options.size());
-        execute(sendQuestion);
+
+        if (question.getImage() != null) {
+            SendPhoto sendPhoto = new SendPhoto();
+            sendPhoto.setChatId(chatId);
+            sendPhoto.setPhoto(question.getId() + "-questionImage", new ByteArrayInputStream(question.getImage()));
+            sendPhoto.setCaption(questionTitle);
+            button.setAnswerButtonsByPhoto(sendPhoto, options.size());
+            execute(sendPhoto);
+        } else {
+            SendMessage sendQuestion = sendMessageConfig(chatId, questionTitle);
+            button.setAnswerButtons(sendQuestion, options.size());
+            execute(sendQuestion);
+        }
         sleep(2_500);
         for (Option o : options) {
             SendMessage sendOption = sendMessageConfig(chatId, o.getOptionTitle());
