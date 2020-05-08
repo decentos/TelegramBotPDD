@@ -50,7 +50,7 @@ public class Bot extends TelegramLongPollingBot {
         return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
     }
 
-    // TODO Подгрузка фотографий для комментариев
+    // TODO Многопоточность
 
     private List<Question> questions;
     private int questionNumber = 0;
