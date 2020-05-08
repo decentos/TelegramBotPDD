@@ -1,19 +1,25 @@
 package me.decentos.bot;
 
 import lombok.SneakyThrows;
+import me.decentos.model.CommentImage;
 import me.decentos.model.Option;
 import me.decentos.model.Question;
+import me.decentos.service.CommentImageService;
 import me.decentos.service.OptionService;
 import me.decentos.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
@@ -24,12 +30,14 @@ public class Bot extends TelegramLongPollingBot {
     private final Button button;
     private final QuestionService questionService;
     private final OptionService optionService;
+    private final CommentImageService commentImageService;
 
     @Autowired
-    public Bot(Button button, QuestionService questionService, OptionService optionService) {
+    public Bot(Button button, QuestionService questionService, OptionService optionService, CommentImageService commentImageService) {
         this.button = button;
         this.questionService = questionService;
         this.optionService = optionService;
+        this.commentImageService = commentImageService;
     }
 
     @Override
@@ -137,6 +145,20 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     private synchronized void sendComment(Long chatId, Question question) {
+        List<CommentImage> commentImages = commentImageService.findCommentImagesByQuestionId(question.getId());
+        if (commentImages.size() > 0) {
+            SendMediaGroup sendMediaGroup = new SendMediaGroup();
+            sendMediaGroup.setChatId(chatId);
+            List<InputMedia> mediaList = new ArrayList<>();
+
+            for (CommentImage c : commentImages) {
+                InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
+                inputMediaPhoto.setMedia(new ByteArrayInputStream(c.getImage()), c.getId() + "-commentImage");
+                mediaList.add(inputMediaPhoto);
+            }
+            sendMediaGroup.setMedia(mediaList);
+            execute(sendMediaGroup);
+        }
         String comment = "\uD83D\uDCAD " + question.getComment();
         SendMessage sendComment = sendMessageConfig(chatId, comment);
         execute(sendComment);
