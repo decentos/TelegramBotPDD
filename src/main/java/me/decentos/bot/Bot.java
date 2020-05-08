@@ -14,6 +14,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
+import static java.lang.Thread.sleep;
+
 @Component
 public class Bot extends TelegramLongPollingBot {
 
@@ -38,9 +40,7 @@ public class Bot extends TelegramLongPollingBot {
         return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
     }
 
-    // TODO количество правильных ответов
     // TODO эмодзи на ответные сообщения
-    // TODO задержки после сообщений
     // TODO Подгрузка фотографий
 
     private List<Question> questions;
@@ -51,27 +51,26 @@ public class Bot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
         update.getMessage();
-        if (message != null && message.hasText()) {
-            Long chatId = update.getMessage().getChatId();
-            String text = message.getText();
-            if (text.equals("/start")) {
-                sendMessage(chatId, "Выберите номер билета", message);
-            } else if (text.matches("№\\s\\d*")) {
-                int ticket = Integer.parseInt(text.substring(2));
-                questions = questionService.findQuestionsByTicket(ticket);
-                sendMessage(chatId, "Вы выбрали билет №" + text.substring(1), message);
+        Long chatId = update.getMessage().getChatId();
+        String text = message.getText();
+
+        if (text.equals("/start")) {
+            sendMessage(chatId, "Выберите номер билета", message);
+        } else if (text.matches("№\\s\\d*")) {
+            int ticket = Integer.parseInt(text.substring(2));
+            questions = questionService.findQuestionsByTicket(ticket);
+            sendMessage(chatId, "Вы выбрали билет №" + text.substring(1), message);
+            sendQuestion(chatId, questions.get(questionNumber));
+        } else if (text.matches("\\d*")) {
+            checkAnswer(chatId, text, questions.get(questionNumber));
+            sendComment(chatId, questions.get(questionNumber));
+            questionNumber++;
+            if (questionNumber < questions.size()) {
                 sendQuestion(chatId, questions.get(questionNumber));
-            } else if (text.matches("\\d*")) {
-                checkAnswer(chatId, text, questions.get(questionNumber));
-                sendComment(chatId, questions.get(questionNumber));
-                questionNumber++;
-                if (questionNumber < questions.size()) {
-                    sendQuestion(chatId, questions.get(questionNumber));
-                } else {
-                    sendResult(chatId, correctCount);
-                    questionNumber = 0;
-                    correctCount = 0;
-                }
+            } else {
+                sendResult(chatId, correctCount);
+                questionNumber = 0;
+                correctCount = 0;
             }
         }
     }
@@ -83,6 +82,7 @@ public class Bot extends TelegramLongPollingBot {
             button.setTicketButtons(sendMessage);
         }
         execute(sendMessage);
+        sleep(2_000);
     }
 
     @SneakyThrows
@@ -91,9 +91,11 @@ public class Bot extends TelegramLongPollingBot {
         List<Option> options = optionService.findOptionsByQuestionId(question.getId());
         button.setAnswerButtons(sendQuestion, options.size());
         execute(sendQuestion);
+        sleep(2_500);
         for (Option o : options) {
             SendMessage sendOption = sendMessageConfig(chatId, o.getOptionTitle());
             execute(sendOption);
+            sleep(1_500);
         }
     }
 
@@ -118,12 +120,14 @@ public class Bot extends TelegramLongPollingBot {
         }
         SendMessage sendAnswer = sendMessageConfig(chatId, answer);
         execute(sendAnswer);
+        sleep(1_000);
     }
 
     @SneakyThrows
     private synchronized void sendComment(Long chatId, Question question) {
         SendMessage sendComment = sendMessageConfig(chatId, question.getComment());
         execute(sendComment);
+        sleep(3_000);
     }
 
     @SneakyThrows
