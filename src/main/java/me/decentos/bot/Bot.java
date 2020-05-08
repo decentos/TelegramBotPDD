@@ -59,7 +59,9 @@ public class Bot extends TelegramLongPollingBot {
                 checkAnswer(chatId, text, questions.get(questionNumber));
                 sendComment(chatId, questions.get(questionNumber));
                 questionNumber++;
-                sendQuestion(chatId, questions.get(questionNumber));
+                if (questionNumber < questions.size()) sendQuestion(chatId, questions.get(questionNumber));
+                // TODO количество правильных ответов
+                // TODO эмодзи на ответные сообщения
             }
         }
     }
