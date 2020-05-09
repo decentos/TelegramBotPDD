@@ -1,26 +1,23 @@
 package me.decentos.bot;
 
 import lombok.SneakyThrows;
-import me.decentos.model.CommentImage;
+import me.decentos.dto.UserDto;
 import me.decentos.model.Option;
 import me.decentos.model.Question;
-import me.decentos.service.CommentImageService;
 import me.decentos.service.OptionService;
 import me.decentos.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
-import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Thread.sleep;
 
@@ -30,14 +27,15 @@ public class Bot extends TelegramLongPollingBot {
     private final Button button;
     private final QuestionService questionService;
     private final OptionService optionService;
-    private final CommentImageService commentImageService;
+    //    private final CommentImageService commentImageService;
+    private final Map<String, UserDto> users = new HashMap<>();
 
     @Autowired
-    public Bot(Button button, QuestionService questionService, OptionService optionService, CommentImageService commentImageService) {
+    public Bot(Button button, QuestionService questionService, OptionService optionService/*, CommentImageService commentImageService*/) {
         this.button = button;
         this.questionService = questionService;
         this.optionService = optionService;
-        this.commentImageService = commentImageService;
+//        this.commentImageService = commentImageService;
     }
 
     @Override
@@ -50,36 +48,51 @@ public class Bot extends TelegramLongPollingBot {
         return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
     }
 
-    // TODO Многопоточность
-
-    private List<Question> questions;
-    private int questionNumber = 0;
-    private int correctCount = 0;
-
     @Override
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
         update.getMessage();
         Long chatId = update.getMessage().getChatId();
         String text = message.getText();
+        String userName = update.getMessage().getFrom().getUserName();
 
         if (text.equals("/start")) {
             sendMessage(chatId, "\uD83D\uDCA1 Выберите номер билета:", message);
         } else if (text.matches("№\\s\\d*")) {
-            int ticket = Integer.parseInt(text.substring(2));
-            questions = questionService.findQuestionsByTicket(ticket);
+            if (!users.containsKey(userName)) {
+                int ticket = Integer.parseInt(text.substring(2));
+                List<Question> questions = questionService.findQuestionsByTicket(ticket);
+
+                UserDto user = new UserDto();
+                user.setUserName(userName);
+                user.setTicket(ticket);
+                user.setQuestions(questions);
+                user.setQuestionNumber(0);
+                user.setCorrectCount(0);
+                users.put(userName, user);
+            }
             sendMessage(chatId, "\uD83D\uDC8E Вы выбрали билет №" + text.substring(1), message);
-            sendQuestion(chatId, questions.get(questionNumber));
+            UserDto user = users.get(userName);
+            Question question = user.getQuestions().get(user.getQuestionNumber());
+            sendQuestion(chatId, question);
         } else if (text.matches("\\d*")) {
-            checkAnswer(chatId, text, questions.get(questionNumber));
-            sendComment(chatId, questions.get(questionNumber));
+            UserDto user = users.get(userName);
+            int questionNumber = user.getQuestionNumber();
+            Question question = user.getQuestions().get(questionNumber);
+            List<Question> questions = user.getQuestions();
+
+            checkAnswer(chatId, text, question, userName);
+            sendComment(chatId, question);
+
             questionNumber++;
+            user.setQuestionNumber(questionNumber);
+            users.put(userName, user);
+
             if (questionNumber < questions.size()) {
                 sendQuestion(chatId, questions.get(questionNumber));
             } else {
-                sendResult(chatId, correctCount);
-                questionNumber = 0;
-                correctCount = 0;
+                sendResult(chatId, users.get(userName).getCorrectCount());
+                users.remove(userName);
             }
         }
     }
@@ -120,7 +133,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @SneakyThrows
-    private synchronized void checkAnswer(Long chatId, String text, Question question) {
+    private synchronized void checkAnswer(Long chatId, String text, Question question, String userName) {
         List<Option> options = optionService.findOptionsByQuestionId(question.getId());
         int isCorrect = options.get(Integer.parseInt(text) - 1).getIsCorrect();
         int correctOption = options
@@ -133,7 +146,10 @@ public class Bot extends TelegramLongPollingBot {
                 ) + 1;
         String answer;
         if (isCorrect == 1) {
-            correctCount++;
+            UserDto user = users.get(userName);
+            int correctCount = user.getCorrectCount() + 1;
+            user.setCorrectCount(correctCount);
+            users.put(userName, user);
             answer = "✅ Верно!";
         } else {
             answer = "❌ Ошибка! Правильный ответ №" + correctOption;
@@ -145,20 +161,21 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     private synchronized void sendComment(Long chatId, Question question) {
-        List<CommentImage> commentImages = commentImageService.findCommentImagesByQuestionId(question.getId());
-        if (commentImages.size() > 0) {
-            SendMediaGroup sendMediaGroup = new SendMediaGroup();
-            sendMediaGroup.setChatId(chatId);
-            List<InputMedia> mediaList = new ArrayList<>();
-
-            for (CommentImage c : commentImages) {
-                InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
-                inputMediaPhoto.setMedia(new ByteArrayInputStream(c.getImage()), c.getId() + "-commentImage");
-                mediaList.add(inputMediaPhoto);
-            }
-            sendMediaGroup.setMedia(mediaList);
-            execute(sendMediaGroup);
-        }
+        // Добавление фото к комментариями (плохое качество фото)
+//        List<CommentImage> commentImages = commentImageService.findCommentImagesByQuestionId(question.getId());
+//        if (commentImages.size() > 0) {
+//            SendMediaGroup sendMediaGroup = new SendMediaGroup();
+//            sendMediaGroup.setChatId(chatId);
+//            List<InputMedia> mediaList = new ArrayList<>();
+//
+//            for (CommentImage c : commentImages) {
+//                InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
+//                inputMediaPhoto.setMedia(new ByteArrayInputStream(c.getImage()), c.getId() + "-commentImage");
+//                mediaList.add(inputMediaPhoto);
+//            }
+//            sendMediaGroup.setMedia(mediaList);
+//            execute(sendMediaGroup);
+//        }
         String comment = "\uD83D\uDCAD " + question.getComment();
         SendMessage sendComment = sendMessageConfig(chatId, comment);
         execute(sendComment);
