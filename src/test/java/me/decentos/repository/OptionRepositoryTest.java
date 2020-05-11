@@ -17,7 +17,7 @@ class OptionRepositoryTest {
 
     @Test
     public void findFirstOption() {
-        Option option = repository.findById(1).orElseThrow(RuntimeException::new);
+        Option option = repository.findById(1).orElseThrow();
         assertThat(option).isNotNull();
     }
 

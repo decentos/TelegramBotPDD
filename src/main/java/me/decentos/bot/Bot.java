@@ -142,7 +142,7 @@ public class Bot extends TelegramLongPollingBot {
                                 .stream()
                                 .filter(o -> o.getIsCorrect() == 1)
                                 .findFirst()
-                                .orElseThrow(RuntimeException::new)
+                                .orElseThrow()
                 ) + 1;
         String answer;
         if (isCorrect == 1) {

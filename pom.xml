@@ -16,10 +16,10 @@
     </parent>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>13</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>13</maven.compiler.source>
+        <maven.compiler.target>13</maven.compiler.target>
     </properties>
 
     <dependencies>
