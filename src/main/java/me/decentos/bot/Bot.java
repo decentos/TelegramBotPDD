@@ -141,8 +141,8 @@ public class Bot extends TelegramLongPollingBot {
                         options
                                 .stream()
                                 .filter(o -> o.getIsCorrect() == 1)
-                                .findFirst().
-                                orElseThrow()
+                                .findFirst()
+                                .orElseThrow(RuntimeException::new)
                 ) + 1;
         String answer;
         if (isCorrect == 1) {
