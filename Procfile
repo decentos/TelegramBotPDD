@@ -1,1 +1,1 @@
-worker: sh target/bin/telegramBotPDD
+worker: java -jar target/telegrambotpdd-1.0.jar me.decentos.Main
