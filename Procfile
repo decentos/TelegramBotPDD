@@ -1,1 +1,1 @@
-worker: sh target/bin/telegrambotpdd
+worker: sh target/bin/TelegramBotPDD
