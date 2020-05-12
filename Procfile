@@ -1,0 +1,1 @@
+worker: java -jar target/telegrambotpdd-1.0-SNAPSHOT.jar me.decentos.Main
