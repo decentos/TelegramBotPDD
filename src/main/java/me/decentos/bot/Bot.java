@@ -27,15 +27,13 @@ public class Bot extends TelegramLongPollingBot {
     private final Button button;
     private final QuestionService questionService;
     private final OptionService optionService;
-    //    private final CommentImageService commentImageService;
     private final Map<String, UserDto> users = new HashMap<>();
 
     @Autowired
-    public Bot(Button button, QuestionService questionService, OptionService optionService/*, CommentImageService commentImageService*/) {
+    public Bot(Button button, QuestionService questionService, OptionService optionService) {
         this.button = button;
         this.questionService = questionService;
         this.optionService = optionService;
-//        this.commentImageService = commentImageService;
     }
 
     @Override
@@ -161,21 +159,6 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     private synchronized void sendComment(Long chatId, Question question) {
-        // Добавление фото к комментариями (плохое качество фото)
-//        List<CommentImage> commentImages = commentImageService.findCommentImagesByQuestionId(question.getId());
-//        if (commentImages.size() > 0) {
-//            SendMediaGroup sendMediaGroup = new SendMediaGroup();
-//            sendMediaGroup.setChatId(chatId);
-//            List<InputMedia> mediaList = new ArrayList<>();
-//
-//            for (CommentImage c : commentImages) {
-//                InputMediaPhoto inputMediaPhoto = new InputMediaPhoto();
-//                inputMediaPhoto.setMedia(new ByteArrayInputStream(c.getImage()), c.getId() + "-commentImage");
-//                mediaList.add(inputMediaPhoto);
-//            }
-//            sendMediaGroup.setMedia(mediaList);
-//            execute(sendMediaGroup);
-//        }
         String comment = "\uD83D\uDCAD " + question.getComment();
         SendMessage sendComment = sendMessageConfig(chatId, comment);
         execute(sendComment);
