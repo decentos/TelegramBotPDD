@@ -29,6 +29,9 @@ public class Bot extends TelegramLongPollingBot {
     private final OptionService optionService;
     private final Map<String, UserDto> users = new HashMap<>();
 
+    // TODO протестить без синхронизации / или уменьшить паузы везде
+    // TODO добавить /end и удалять данные об аккаунте из мапы
+
     @Autowired
     public Bot(Button button, QuestionService questionService, OptionService optionService) {
         this.button = button;
@@ -38,11 +41,13 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
+//        return "TestPddTgBot";
         return "PddTgBot";
     }
 
     @Override
     public String getBotToken() {
+//        return "1153070746:AAGfJh8HlKIQoSuTsmACRwbXBujd17SSQcg";
         return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
     }
 
@@ -102,7 +107,7 @@ public class Bot extends TelegramLongPollingBot {
             button.setTicketButtons(sendMessage);
         }
         execute(sendMessage);
-        sleep(2_000);
+        sleep(1_000);
     }
 
     @SneakyThrows
@@ -122,11 +127,11 @@ public class Bot extends TelegramLongPollingBot {
             button.setAnswerButtons(sendQuestion, options.size());
             execute(sendQuestion);
         }
-        sleep(2_500);
+        sleep(1_000);
         for (Option o : options) {
             SendMessage sendOption = sendMessageConfig(chatId, o.getOptionTitle());
             execute(sendOption);
-            sleep(1_500);
+            sleep(300);
         }
     }
 
@@ -154,7 +159,7 @@ public class Bot extends TelegramLongPollingBot {
         }
         SendMessage sendAnswer = sendMessageConfig(chatId, answer);
         execute(sendAnswer);
-        sleep(1_000);
+        sleep(500);
     }
 
     @SneakyThrows
@@ -162,7 +167,7 @@ public class Bot extends TelegramLongPollingBot {
         String comment = "\uD83D\uDCAD " + question.getComment();
         SendMessage sendComment = sendMessageConfig(chatId, comment);
         execute(sendComment);
-        sleep(3_000);
+        sleep(2_000);
     }
 
     @SneakyThrows
