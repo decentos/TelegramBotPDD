@@ -7,6 +7,7 @@ import me.decentos.model.Question;
 import me.decentos.service.OptionService;
 import me.decentos.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -29,6 +30,11 @@ public class Bot extends TelegramLongPollingBot {
     private final OptionService optionService;
     private final Map<String, UserDto> users = new HashMap<>();
 
+    @Value("${bot.username}")
+    private String botUserName;
+    @Value("${bot.token}")
+    private String botToken;
+
     // TODO протестить без синхронизации / или уменьшить паузы везде
     // TODO добавить /end и удалять данные об аккаунте из мапы
 
@@ -41,14 +47,12 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-//        return "TestPddTgBot";
-        return "PddTgBot";
+        return botUserName;
     }
 
     @Override
     public String getBotToken() {
-//        return "1153070746:AAGfJh8HlKIQoSuTsmACRwbXBujd17SSQcg";
-        return "1265644920:AAFndR3wLswvzgdPlVcKErbKgslKcIq3MT4";
+        return botToken;
     }
 
     @Override

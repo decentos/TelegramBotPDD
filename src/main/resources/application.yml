@@ -1,13 +1,4 @@
 spring:
-  datasource:
-    initialization-mode: always
-#    url: jdbc:mysql://localhost:3306/telegram_bot_pdd?useUnicode=true&serverTimezone=UTC&useSSL=false
-#    username: root
-#    password: Consensus69
-    url: ${JDBC_DATABASE_URL}
-    username: ${JDBC_DATABASE_USERNAME}
-    password: ${JDBC_DATABASE_PASSWORD}
-
   jpa:
     generate-ddl: false
     hibernate:
