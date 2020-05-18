@@ -63,8 +63,9 @@ public class Bot extends TelegramLongPollingBot {
         String text = message.getText();
         String userName = update.getMessage().getFrom().getUserName();
 
-        if (text.equals("/start")) {
-            sendMessage(chatId, "\uD83D\uDCA1 Выберите номер билета:", message);
+        if (text.equals("/start") || text.equals("/end")) {
+            users.remove(userName);
+            sendMessage(chatId, "\uD83D\uDCA1 Выберите номер билета:", text);
         } else if (text.matches("№\\s\\d*")) {
             if (!users.containsKey(userName)) {
                 int ticket = Integer.parseInt(text.substring(2));
@@ -78,7 +79,7 @@ public class Bot extends TelegramLongPollingBot {
                 user.setCorrectCount(0);
                 users.put(userName, user);
             }
-            sendMessage(chatId, "\uD83D\uDC8E Вы выбрали билет №" + text.substring(1), message);
+            sendMessage(chatId, "\uD83D\uDC8E Вы выбрали билет №" + text.substring(1), null);
             UserDto user = users.get(userName);
             Question question = user.getQuestions().get(user.getQuestionNumber());
             sendQuestion(chatId, question);
@@ -105,9 +106,9 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @SneakyThrows
-    private synchronized void sendMessage(Long chatId, String text, Message message) {
-        SendMessage sendMessage = sendMessageConfig(chatId, text);
-        if (message.getText().equals("/start")) {
+    private synchronized void sendMessage(Long chatId, String answer, String text) {
+        SendMessage sendMessage = sendMessageConfig(chatId, answer);
+        if (text != null) {
             button.setTicketButtons(sendMessage);
         }
         execute(sendMessage);
