@@ -8,6 +8,7 @@ import me.decentos.service.OptionService;
 import me.decentos.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -18,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static java.lang.Thread.sleep;
@@ -29,20 +31,20 @@ public class Bot extends TelegramLongPollingBot {
     private final QuestionService questionService;
     private final OptionService optionService;
     private final Map<String, UserDto> users = new HashMap<>();
+    private final MessageSource messageSource;
 
     @Value("${bot.username}")
     private String botUserName;
     @Value("${bot.token}")
     private String botToken;
 
-    // TODO протестить без синхронизации / или уменьшить паузы везде
-    // TODO добавить /end и удалять данные об аккаунте из мапы
-
     @Autowired
-    public Bot(Button button, QuestionService questionService, OptionService optionService) {
+    public Bot(Button button, QuestionService questionService, OptionService optionService,
+               MessageSource messageSource) {
         this.button = button;
         this.questionService = questionService;
         this.optionService = optionService;
+        this.messageSource = messageSource;
     }
 
     @Override
@@ -63,9 +65,14 @@ public class Bot extends TelegramLongPollingBot {
         String text = message.getText();
         String userName = update.getMessage().getFrom().getUserName();
 
-        if (text.equals("/start") || text.equals("/end")) {
+        String start = messageSource.getMessage("start", null, Locale.getDefault());
+        String end = messageSource.getMessage("end", null, Locale.getDefault());
+        String selectTicket = messageSource.getMessage("select.ticket", null, Locale.getDefault());
+        String selectedTicket = messageSource.getMessage("selected.ticket", new String[]{text.substring(1)}, Locale.getDefault());
+
+        if (text.equals(start) || text.equals(end)) {
             users.remove(userName);
-            sendMessage(chatId, "\uD83D\uDCA1 Выберите номер билета:", text);
+            sendMessage(chatId, selectTicket, text);
         } else if (text.matches("№\\s\\d*")) {
             if (!users.containsKey(userName)) {
                 int ticket = Integer.parseInt(text.substring(2));
@@ -79,7 +86,7 @@ public class Bot extends TelegramLongPollingBot {
                 user.setCorrectCount(0);
                 users.put(userName, user);
             }
-            sendMessage(chatId, "\uD83D\uDC8E Вы выбрали билет №" + text.substring(1), null);
+            sendMessage(chatId, selectedTicket, null);
             UserDto user = users.get(userName);
             Question question = user.getQuestions().get(user.getQuestionNumber());
             sendQuestion(chatId, question);
@@ -152,17 +159,16 @@ public class Bot extends TelegramLongPollingBot {
                                 .findFirst()
                                 .orElseThrow(RuntimeException::new)
                 ) + 1;
-        String answer;
+        String correctAnswer = messageSource.getMessage("correct.answer", null, Locale.getDefault());
+        String incorrectAnswer = messageSource.getMessage("incorrect.answer", new Integer[]{correctOption}, Locale.getDefault());
+
         if (isCorrect == 1) {
             UserDto user = users.get(userName);
             int correctCount = user.getCorrectCount() + 1;
             user.setCorrectCount(correctCount);
             users.put(userName, user);
-            answer = "✅ Верно!";
-        } else {
-            answer = "❌ Ошибка! Правильный ответ №" + correctOption;
         }
-        SendMessage sendAnswer = sendMessageConfig(chatId, answer);
+        SendMessage sendAnswer = sendMessageConfig(chatId, isCorrect == 1 ? correctAnswer : incorrectAnswer);
         execute(sendAnswer);
         sleep(500);
     }
@@ -177,12 +183,10 @@ public class Bot extends TelegramLongPollingBot {
 
     @SneakyThrows
     private void sendResult(Long chatId, int correctCount) {
-        String result;
-        if (correctCount > 17) {
-            result = "\uD83C\uDFC6 Поздравляем с успешно пройденным тестированием!\nКоличество правильных ответов: " + correctCount + " из 20 вопросов.";
-        } else {
-            result = "\uD83D\uDC4E Тестирование не пройдено!\nКоличество правильных ответов: " + correctCount + " из 20 вопросов.";
-        }
+        String passed = messageSource.getMessage("passed", new Integer[]{correctCount}, Locale.getDefault());
+        String failure = messageSource.getMessage("failure", new Integer[]{correctCount}, Locale.getDefault());
+        String result = correctCount > 17 ? passed : failure;
+
         SendMessage sendResult = sendMessageConfig(chatId, result);
         button.setTicketButtons(sendResult);
         execute(sendResult);
