@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import me.decentos.dto.UserDto;
 import me.decentos.model.Option;
 import me.decentos.model.Question;
+import me.decentos.service.ButtonService;
 import me.decentos.service.OptionService;
 import me.decentos.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ import static java.lang.Thread.sleep;
 @Component
 public class Bot extends TelegramLongPollingBot {
 
-    private final Button button;
+    private final ButtonService buttonService;
     private final QuestionService questionService;
     private final OptionService optionService;
     private final Map<String, UserDto> users = new HashMap<>();
@@ -39,9 +40,9 @@ public class Bot extends TelegramLongPollingBot {
     private String botToken;
 
     @Autowired
-    public Bot(Button button, QuestionService questionService, OptionService optionService,
+    public Bot(ButtonService buttonService, QuestionService questionService, OptionService optionService,
                MessageSource messageSource) {
-        this.button = button;
+        this.buttonService = buttonService;
         this.questionService = questionService;
         this.optionService = optionService;
         this.messageSource = messageSource;
@@ -116,7 +117,7 @@ public class Bot extends TelegramLongPollingBot {
     private synchronized void sendMessage(Long chatId, String answer, String text) {
         SendMessage sendMessage = sendMessageConfig(chatId, answer);
         if (text != null) {
-            button.setTicketButtons(sendMessage);
+            buttonService.setTicketButtons(sendMessage);
         }
         execute(sendMessage);
         sleep(1_000);
@@ -132,11 +133,11 @@ public class Bot extends TelegramLongPollingBot {
             sendPhoto.setChatId(chatId);
             sendPhoto.setPhoto(question.getId() + "-questionImage", new ByteArrayInputStream(question.getImage()));
             sendPhoto.setCaption(questionTitle);
-            button.setAnswerButtonsByPhoto(sendPhoto, options.size());
+            buttonService.setAnswerButtonsByPhoto(sendPhoto, options.size());
             execute(sendPhoto);
         } else {
             SendMessage sendQuestion = sendMessageConfig(chatId, questionTitle);
-            button.setAnswerButtons(sendQuestion, options.size());
+            buttonService.setAnswerButtons(sendQuestion, options.size());
             execute(sendQuestion);
         }
         sleep(1_000);
@@ -188,7 +189,7 @@ public class Bot extends TelegramLongPollingBot {
         String result = correctCount > 17 ? passed : failure;
 
         SendMessage sendResult = sendMessageConfig(chatId, result);
-        button.setTicketButtons(sendResult);
+        buttonService.setTicketButtons(sendResult);
         execute(sendResult);
     }
 
