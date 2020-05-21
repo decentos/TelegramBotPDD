@@ -67,48 +67,58 @@ public class Bot extends TelegramLongPollingBot {
             execute(sendMessageService.sendMessage(chatId, selectTicket, text));
             sleep(1_000);
         } else if (text.matches("№\\s\\d*")) {
-            if (!users.containsKey(userName)) {
-                int ticket = Integer.parseInt(text.substring(2));
-                List<Question> questions = questionService.findQuestionsByTicket(ticket);
-
-                UserDto user = new UserDto();
-                user.setUserName(userName);
-                user.setTicket(ticket);
-                user.setQuestions(questions);
-                user.setQuestionNumber(0);
-                user.setCorrectCount(0);
-                users.put(userName, user);
-            }
-            execute(sendMessageService.sendMessage(chatId, selectedTicket, null));
-            sleep(1_000);
-            UserDto user = users.get(userName);
-            Question question = user.getQuestions().get(user.getQuestionNumber());
-            List<Option> options = optionService.findOptionsByQuestionId(question.getId());
-            sendQuestion(chatId, question, options);
+            sendAfterSelectTicket(chatId, text, userName, selectedTicket);
         } else if (text.matches("\\d*")) {
-            UserDto user = users.get(userName);
-            int questionNumber = user.getQuestionNumber();
-            Question question = user.getQuestions().get(questionNumber);
-            List<Question> questions = user.getQuestions();
-            List<Option> options = optionService.findOptionsByQuestionId(question.getId());
+            sendAfterSelectOption(chatId, text, userName);
+        }
+    }
 
-            execute(sendMessageService.checkAnswer(chatId, text, options, userName, users));
-            sleep(500);
-            execute(sendMessageService.sendComment(chatId, question));
-            sleep(2_000);
+    @SneakyThrows
+    private void sendAfterSelectTicket(Long chatId, String text, String userName, String selectedTicket) {
+        if (!users.containsKey(userName)) {
+            int ticket = Integer.parseInt(text.substring(2));
+            List<Question> questions = questionService.findQuestionsByTicket(ticket);
 
-            questionNumber++;
-            user.setQuestionNumber(questionNumber);
+            UserDto user = new UserDto();
+            user.setUserName(userName);
+            user.setTicket(ticket);
+            user.setQuestions(questions);
+            user.setQuestionNumber(0);
+            user.setCorrectCount(0);
             users.put(userName, user);
+        }
+        execute(sendMessageService.sendMessage(chatId, selectedTicket, null));
+        sleep(1_000);
+        UserDto user = users.get(userName);
+        Question question = user.getQuestions().get(user.getQuestionNumber());
+        List<Option> options = optionService.findOptionsByQuestionId(question.getId());
+        sendQuestion(chatId, question, options);
+    }
 
-            if (questionNumber < questions.size()) {
-                question = questions.get(questionNumber);
-                options = optionService.findOptionsByQuestionId(question.getId());
-                sendQuestion(chatId, question, options);
-            } else {
-                execute(sendMessageService.sendResult(chatId, users.get(userName).getCorrectCount()));
-                users.remove(userName);
-            }
+    @SneakyThrows
+    private void sendAfterSelectOption(Long chatId, String text, String userName) {
+        UserDto user = users.get(userName);
+        int questionNumber = user.getQuestionNumber();
+        Question question = user.getQuestions().get(questionNumber);
+        List<Question> questions = user.getQuestions();
+        List<Option> options = optionService.findOptionsByQuestionId(question.getId());
+
+        execute(sendMessageService.checkAnswer(chatId, text, options, userName, users));
+        sleep(500);
+        execute(sendMessageService.sendComment(chatId, question));
+        sleep(2_000);
+
+        questionNumber++;
+        user.setQuestionNumber(questionNumber);
+        users.put(userName, user);
+
+        if (questionNumber < questions.size()) {
+            question = questions.get(questionNumber);
+            options = optionService.findOptionsByQuestionId(question.getId());
+            sendQuestion(chatId, question, options);
+        } else {
+            execute(sendMessageService.sendResult(chatId, users.get(userName).getCorrectCount()));
+            users.remove(userName);
         }
     }
 
