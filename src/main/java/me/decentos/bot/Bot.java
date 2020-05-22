@@ -76,16 +76,7 @@ public class Bot extends TelegramLongPollingBot {
     @SneakyThrows
     private void sendAfterSelectTicket(Long chatId, String text, String userName, String selectedTicket) {
         if (!users.containsKey(userName)) {
-            int ticket = Integer.parseInt(text.substring(2));
-            List<Question> questions = questionService.findQuestionsByTicket(ticket);
-
-            UserDto user = new UserDto();
-            user.setUserName(userName);
-            user.setTicket(ticket);
-            user.setQuestions(questions);
-            user.setQuestionNumber(0);
-            user.setCorrectCount(0);
-            users.put(userName, user);
+            createUser(text, userName);
         }
         execute(sendMessageService.sendMessage(chatId, selectedTicket, null));
         sleep(1_000);
@@ -93,6 +84,19 @@ public class Bot extends TelegramLongPollingBot {
         Question question = user.getQuestions().get(user.getQuestionNumber());
         List<Option> options = optionService.findOptionsByQuestionId(question.getId());
         sendQuestion(chatId, question, options);
+    }
+
+    private void createUser(String text, String userName) {
+        int ticket = Integer.parseInt(text.substring(2));
+        List<Question> questions = questionService.findQuestionsByTicket(ticket);
+
+        UserDto user = new UserDto();
+        user.setUserName(userName);
+        user.setTicket(ticket);
+        user.setQuestions(questions);
+        user.setQuestionNumber(0);
+        user.setCorrectCount(0);
+        users.put(userName, user);
     }
 
     @SneakyThrows
