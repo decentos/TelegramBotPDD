@@ -18,8 +18,9 @@ public class Option {
     @Column(name = "option_id")
     private int id;
 
-    @Column(name = "question_id")
-    private int questionId;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "question_id")
+    private Question question;
 
     @Column(name = "option_title")
     private String optionTitle;
