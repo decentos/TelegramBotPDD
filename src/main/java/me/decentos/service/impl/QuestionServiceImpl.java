@@ -1,6 +1,7 @@
 package me.decentos.service.impl;
 
 import me.decentos.model.Question;
+import me.decentos.model.Ticket;
 import me.decentos.repository.QuestionRepository;
 import me.decentos.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<Question> findQuestionsByTicket(int ticket) {
+    public List<Question> findQuestionsByTicket(Ticket ticket) {
         return questionRepository.findQuestionsByTicket(ticket);
     }
 }

@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import me.decentos.dto.UserDto;
 import me.decentos.model.Option;
 import me.decentos.model.Question;
+import me.decentos.model.Ticket;
 import me.decentos.service.OptionService;
 import me.decentos.service.QuestionService;
 import me.decentos.service.SendMessageService;
@@ -87,7 +88,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void createUser(String text, String userName) {
-        int ticket = Integer.parseInt(text.substring(2));
+        Ticket ticket = new Ticket(Integer.parseInt(text.substring(2)));
         List<Question> questions = questionService.findQuestionsByTicket(ticket);
 
         UserDto user = new UserDto();
