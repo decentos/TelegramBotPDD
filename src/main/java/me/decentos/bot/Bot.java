@@ -7,8 +7,8 @@ import me.decentos.model.Option;
 import me.decentos.model.Question;
 import me.decentos.model.Ticket;
 import me.decentos.service.OptionService;
+import me.decentos.service.PrepareMessageService;
 import me.decentos.service.QuestionService;
-import me.decentos.service.SendMessageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ import static java.lang.Thread.sleep;
 @Component
 public class Bot extends TelegramLongPollingBot {
 
-    private final SendMessageService sendMessageService;
+    private final PrepareMessageService prepareMessageService;
     private final QuestionService questionService;
     private final OptionService optionService;
     private final MessageSource messageSource;
@@ -65,7 +65,7 @@ public class Bot extends TelegramLongPollingBot {
 
         if (text.equals(start) || text.equals(end)) {
             users.remove(userName);
-            execute(sendMessageService.sendMessage(chatId, selectTicket, text));
+            execute(prepareMessageService.prepareMessage(chatId, selectTicket, text));
             sleep(1_000);
         } else if (text.matches("№\\s\\d*")) {
             sendAfterSelectTicket(chatId, text, userName, selectedTicket);
@@ -79,7 +79,7 @@ public class Bot extends TelegramLongPollingBot {
         if (!users.containsKey(userName)) {
             createUser(text, userName);
         }
-        execute(sendMessageService.sendMessage(chatId, selectedTicket, null));
+        execute(prepareMessageService.prepareMessage(chatId, selectedTicket, null));
         sleep(1_000);
         UserDto user = users.get(userName);
         Question question = user.getQuestions().get(user.getQuestionNumber());
@@ -108,9 +108,9 @@ public class Bot extends TelegramLongPollingBot {
         List<Question> questions = user.getQuestions();
         List<Option> options = optionService.findOptionsByQuestionId(question.getId());
 
-        execute(sendMessageService.checkAnswer(chatId, text, options, userName, users));
+        execute(prepareMessageService.checkAnswer(chatId, text, options, userName, users));
         sleep(500);
-        execute(sendMessageService.sendComment(chatId, question));
+        execute(prepareMessageService.prepareComment(chatId, question));
         sleep(2_000);
 
         questionNumber++;
@@ -122,18 +122,18 @@ public class Bot extends TelegramLongPollingBot {
             options = optionService.findOptionsByQuestionId(question.getId());
             sendQuestion(chatId, question, options);
         } else {
-            execute(sendMessageService.sendResult(chatId, users.get(userName).getCorrectCount()));
+            execute(prepareMessageService.prepareResult(chatId, users.get(userName).getCorrectCount()));
             users.remove(userName);
         }
     }
 
     @SneakyThrows
     private void sendQuestion(Long chatId, Question question, List<Option> options) {
-        List<SendMessage> optionsList = sendMessageService.sendOptions(chatId, options);
+        List<SendMessage> optionsList = prepareMessageService.prepareOptions(chatId, options);
         if (question.getImage() == null) {
-            execute(sendMessageService.sendQuestion(chatId, question.getQuestionTitle(), options.size()));
+            execute(prepareMessageService.prepareQuestion(chatId, question.getQuestionTitle(), options.size()));
         } else {
-            execute(sendMessageService.sendPhotoQuestion(chatId, question, options.size()));
+            execute(prepareMessageService.preparePhotoQuestion(chatId, question, options.size()));
         }
         sleep(1_000);
         for (SendMessage s : optionsList) {

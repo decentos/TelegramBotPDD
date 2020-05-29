@@ -6,7 +6,7 @@ import me.decentos.dto.UserDto;
 import me.decentos.model.Option;
 import me.decentos.model.Question;
 import me.decentos.service.ButtonService;
-import me.decentos.service.SendMessageService;
+import me.decentos.service.PrepareMessageService;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,15 +20,15 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
-public class SendMessageServiceImpl implements SendMessageService {
+public class PrepareMessageServiceImpl implements PrepareMessageService {
 
     private final ButtonService buttonService;
     private final MessageSource messageSource;
 
     @SneakyThrows
     @Override
-    public synchronized SendMessage sendMessage(Long chatId, String answer, String text) {
-        SendMessage sendMessage = sendMessageConfig(chatId, answer);
+    public synchronized SendMessage prepareMessage(Long chatId, String answer, String text) {
+        SendMessage sendMessage = prepareMessageConfig(chatId, answer);
         if (text != null) {
             buttonService.setTicketButtons(sendMessage);
         }
@@ -37,15 +37,15 @@ public class SendMessageServiceImpl implements SendMessageService {
 
     @SneakyThrows
     @Override
-    public synchronized SendMessage sendQuestion(Long chatId, String question, int size) {
-        SendMessage sendQuestion = sendMessageConfig(chatId, String.format("❓%s", question));
+    public synchronized SendMessage prepareQuestion(Long chatId, String question, int size) {
+        SendMessage sendQuestion = prepareMessageConfig(chatId, String.format("❓%s", question));
         buttonService.setAnswerButtons(sendQuestion, size);
         return sendQuestion;
     }
 
     @SneakyThrows
     @Override
-    public synchronized SendPhoto sendPhotoQuestion(Long chatId, Question question, int size) {
+    public synchronized SendPhoto preparePhotoQuestion(Long chatId, Question question, int size) {
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(chatId);
         sendPhoto.setPhoto(question.getId() + "-questionImage", new ByteArrayInputStream(question.getImage()));
@@ -55,10 +55,10 @@ public class SendMessageServiceImpl implements SendMessageService {
     }
 
     @Override
-    public synchronized List<SendMessage> sendOptions(Long chatId, List<Option> options) {
+    public synchronized List<SendMessage> prepareOptions(Long chatId, List<Option> options) {
         List<SendMessage> optionsList = new ArrayList<>();
         for (Option o : options) {
-            SendMessage sendOption = sendMessageConfig(chatId, o.getOptionTitle());
+            SendMessage sendOption = prepareMessageConfig(chatId, o.getOptionTitle());
             optionsList.add(sendOption);
         }
         return optionsList;
@@ -85,28 +85,28 @@ public class SendMessageServiceImpl implements SendMessageService {
             user.setCorrectCount(correctCount);
             users.put(userName, user);
         }
-        return sendMessageConfig(chatId, isCorrect == 1 ? correctAnswer : incorrectAnswer);
+        return prepareMessageConfig(chatId, isCorrect == 1 ? correctAnswer : incorrectAnswer);
     }
 
     @SneakyThrows
     @Override
-    public synchronized SendMessage sendComment(Long chatId, Question question) {
+    public synchronized SendMessage prepareComment(Long chatId, Question question) {
         String comment = "\uD83D\uDCAD " + question.getComment();
-        return sendMessageConfig(chatId, comment);
+        return prepareMessageConfig(chatId, comment);
     }
 
     @Override
-    public synchronized SendMessage sendResult(Long chatId, int correctCount) {
+    public synchronized SendMessage prepareResult(Long chatId, int correctCount) {
         String passed = messageSource.getMessage("passed", new Integer[]{correctCount}, Locale.getDefault());
         String failure = messageSource.getMessage("failure", new Integer[]{correctCount}, Locale.getDefault());
         String result = correctCount > 17 ? passed : failure;
 
-        SendMessage sendResult = sendMessageConfig(chatId, result);
+        SendMessage sendResult = prepareMessageConfig(chatId, result);
         buttonService.setTicketButtons(sendResult);
         return sendResult;
     }
 
-    private synchronized SendMessage sendMessageConfig(Long chatId, String text) {
+    private synchronized SendMessage prepareMessageConfig(Long chatId, String text) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatId);
