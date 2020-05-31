@@ -23,4 +23,6 @@ public interface PrepareMessageService {
     SendMessage prepareComment(Long chatId, Question question);
 
     SendMessage prepareResult(Long chatId, int correctCount);
+
+    SendMessage prepareStatistics(Long chatId, String username);
 }

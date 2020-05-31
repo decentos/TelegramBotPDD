@@ -71,6 +71,8 @@ public class Bot extends TelegramLongPollingBot {
             sendAfterSelectTicket(chatId, text, userName, selectedTicket);
         } else if (text.matches("\\d*")) {
             sendAfterSelectOption(chatId, text, userName);
+        } else if (text.equals("/stat")) {
+            execute(prepareMessageService.prepareStatistics(chatId, userName));
         }
     }
 
