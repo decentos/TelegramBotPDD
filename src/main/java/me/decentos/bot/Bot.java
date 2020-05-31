@@ -9,6 +9,7 @@ import me.decentos.model.Ticket;
 import me.decentos.service.OptionService;
 import me.decentos.service.PrepareMessageService;
 import me.decentos.service.QuestionService;
+import me.decentos.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,7 @@ public class Bot extends TelegramLongPollingBot {
     private final PrepareMessageService prepareMessageService;
     private final QuestionService questionService;
     private final OptionService optionService;
+    private final UserService userService;
     private final MessageSource messageSource;
     private final Map<String, UserDto> users = new HashMap<>();
 
@@ -64,6 +66,7 @@ public class Bot extends TelegramLongPollingBot {
         String selectedTicket = messageSource.getMessage("selected.ticket", new String[]{text.substring(1)}, Locale.getDefault());
 
         if (text.equals(start) || text.equals(end)) {
+            userService.saveUser(userName);
             users.remove(userName);
             execute(prepareMessageService.prepareMessage(chatId, selectTicket, text));
             sleep(1_000);

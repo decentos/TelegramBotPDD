@@ -1,14 +1,13 @@
 package me.decentos.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -19,5 +18,6 @@ public class User {
     private int id;
 
     @Column(name = "username")
+    @NonNull
     private String username;
 }
