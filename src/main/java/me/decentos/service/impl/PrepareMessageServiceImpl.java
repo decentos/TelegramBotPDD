@@ -68,7 +68,11 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
 
     @Override
     public synchronized SendMessage checkAnswer(Long chatId, String text, List<Option> options, String userName, Map<String, UserDto> users) {
-        int isCorrect = options.get(Integer.parseInt(text) - 1).getIsCorrect();
+        User user = userService.findByUsername(userName);
+        Option selectedOption = options.get(Integer.parseInt(text) - 1);
+        answerUserService.saveAnswerUser(user, selectedOption);
+
+        int isCorrect = selectedOption.getIsCorrect();
         int correctOption = options
                 .indexOf(
                         options
@@ -81,10 +85,10 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
         String incorrectAnswer = messageSource.getMessage("incorrect.answer", new Integer[]{correctOption}, Locale.getDefault());
 
         if (isCorrect == 1) {
-            UserDto user = users.get(userName);
-            int correctCount = user.getCorrectCount() + 1;
-            user.setCorrectCount(correctCount);
-            users.put(userName, user);
+            UserDto userDto = users.get(userName);
+            int correctCount = userDto.getCorrectCount() + 1;
+            userDto.setCorrectCount(correctCount);
+            users.put(userName, userDto);
         }
         return prepareMessageConfig(chatId, isCorrect == 1 ? correctAnswer : incorrectAnswer);
     }
@@ -107,8 +111,8 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
     }
 
     @Override
-    public synchronized SendMessage prepareStatistics(Long chatId, String username) {
-        User user = userService.findByUsername(username);
+    public synchronized SendMessage prepareStatistics(Long chatId, String userName) {
+        User user = userService.findByUsername(userName);
         List<AnswerUser> answerUserByUser = answerUserService.findAnswerUserByUser(user);
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i <= 40; i++) {
