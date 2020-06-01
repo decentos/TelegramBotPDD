@@ -62,20 +62,24 @@ public class Bot extends TelegramLongPollingBot {
 
         String start = messageSource.getMessage("start", null, Locale.getDefault());
         String end = messageSource.getMessage("end", null, Locale.getDefault());
+        String greeting = messageSource.getMessage("greeting", null, Locale.getDefault());
+        String testing = messageSource.getMessage("testing", null, Locale.getDefault());
+        String statistic = messageSource.getMessage("statistic", null, Locale.getDefault());
         String selectTicket = messageSource.getMessage("select.ticket", null, Locale.getDefault());
         String selectedTicket = messageSource.getMessage("selected.ticket", new String[]{text.substring(1)}, Locale.getDefault());
 
         if (text.equals(start) || text.equals(end)) {
             userService.saveUser(userName);
             users.remove(userName);
+            execute(prepareMessageService.prepareMenu(chatId, greeting));
+        } else if (text.equals(testing)) {
             execute(prepareMessageService.prepareMessage(chatId, selectTicket, text));
-            sleep(1_000);
+        } else if (text.equals(statistic)) {
+            execute(prepareMessageService.prepareStatistics(chatId, userName));
         } else if (text.matches("№\\s\\d*")) {
             sendAfterSelectTicket(chatId, text, userName, selectedTicket);
         } else if (text.matches("\\d*")) {
             sendAfterSelectOption(chatId, text, userName);
-        } else if (text.equals("/stat")) {
-            execute(prepareMessageService.prepareStatistics(chatId, userName));
         }
     }
 

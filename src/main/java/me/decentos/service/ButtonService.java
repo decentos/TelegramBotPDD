@@ -4,6 +4,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 
 public interface ButtonService {
+    void setMenuButtons(SendMessage sendMessage);
+
     void setTicketButtons(SendMessage sendMessage);
 
     void setAnswerButtons(SendMessage sendMessage, int count);

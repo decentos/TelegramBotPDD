@@ -31,6 +31,13 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
     private final MessageSource messageSource;
 
     @Override
+    public synchronized SendMessage prepareMenu(Long chatId, String greeting) {
+        SendMessage sendGreeting = prepareMessageConfig(chatId, greeting);
+        buttonService.setMenuButtons(sendGreeting);
+        return sendGreeting;
+    }
+
+    @Override
     public synchronized SendMessage prepareMessage(Long chatId, String answer, String text) {
         SendMessage sendMessage = prepareMessageConfig(chatId, answer);
         if (text != null) {
@@ -106,7 +113,7 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
         String result = correctCount > 17 ? passed : failure;
 
         SendMessage sendResult = prepareMessageConfig(chatId, result);
-        buttonService.setTicketButtons(sendResult);
+        buttonService.setMenuButtons(sendResult);
         return sendResult;
     }
 
