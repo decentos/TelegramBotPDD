@@ -31,14 +31,14 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
     private final MessageSource messageSource;
 
     @Override
-    public synchronized SendMessage prepareMenu(Long chatId, String greeting) {
+    public SendMessage prepareMenu(Long chatId, String greeting) {
         SendMessage sendGreeting = prepareMessageConfig(chatId, greeting);
         buttonService.setMenuButtons(sendGreeting);
         return sendGreeting;
     }
 
     @Override
-    public synchronized SendMessage prepareMessage(Long chatId, String answer, String text) {
+    public SendMessage prepareMessage(Long chatId, String answer, String text) {
         SendMessage sendMessage = prepareMessageConfig(chatId, answer);
         if (text != null) {
             buttonService.setTicketButtons(sendMessage);
@@ -47,14 +47,14 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
     }
 
     @Override
-    public synchronized SendMessage prepareQuestion(Long chatId, String question, int size) {
+    public SendMessage prepareQuestion(Long chatId, String question, int size) {
         SendMessage sendQuestion = prepareMessageConfig(chatId, String.format("❓%s", question));
         buttonService.setAnswerButtons(sendQuestion, size);
         return sendQuestion;
     }
 
     @Override
-    public synchronized SendPhoto preparePhotoQuestion(Long chatId, Question question, int size) {
+    public SendPhoto preparePhotoQuestion(Long chatId, Question question, int size) {
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(chatId);
         sendPhoto.setPhoto(question.getId() + "-questionImage", new ByteArrayInputStream(question.getImage()));
@@ -64,7 +64,7 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
     }
 
     @Override
-    public synchronized List<SendMessage> prepareOptions(Long chatId, List<Option> options) {
+    public List<SendMessage> prepareOptions(Long chatId, List<Option> options) {
         List<SendMessage> optionsList = new ArrayList<>();
         for (Option o : options) {
             SendMessage sendOption = prepareMessageConfig(chatId, o.getOptionTitle());
@@ -74,7 +74,7 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
     }
 
     @Override
-    public synchronized SendMessage checkAnswer(Long chatId, String text, List<Option> options, String userName, Map<String, UserDto> users) {
+    public SendMessage checkAnswer(Long chatId, String text, List<Option> options, String userName, Map<String, UserDto> users) {
         User user = userService.findByUsername(userName);
         Option selectedOption = options.get(Integer.parseInt(text) - 1);
         answerUserService.saveAnswerUser(user, selectedOption);
@@ -101,13 +101,13 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
     }
 
     @Override
-    public synchronized SendMessage prepareComment(Long chatId, Question question) {
+    public SendMessage prepareComment(Long chatId, Question question) {
         String comment = "\uD83D\uDCAD " + question.getComment();
         return prepareMessageConfig(chatId, comment);
     }
 
     @Override
-    public synchronized SendMessage prepareResult(Long chatId, int correctCount) {
+    public SendMessage prepareResult(Long chatId, int correctCount) {
         String passed = messageSource.getMessage("passed", new Integer[]{correctCount}, Locale.getDefault());
         String failure = messageSource.getMessage("failure", new Integer[]{correctCount}, Locale.getDefault());
         String result = correctCount > 17 ? passed : failure;
@@ -118,7 +118,7 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
     }
 
     @Override
-    public synchronized SendMessage prepareStatistics(Long chatId, String userName) {
+    public SendMessage prepareStatistics(Long chatId, String userName) {
         User user = userService.findByUsername(userName);
         List<AnswerUser> answerUserByUser = answerUserService.findAnswerUserByUser(user);
         StringBuilder sb = new StringBuilder();
@@ -142,7 +142,7 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
         return prepareMessageConfig(chatId, sb.toString());
     }
 
-    private synchronized SendMessage prepareMessageConfig(Long chatId, String text) {
+    private SendMessage prepareMessageConfig(Long chatId, String text) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatId);

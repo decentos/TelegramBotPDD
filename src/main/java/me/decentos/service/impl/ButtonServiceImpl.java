@@ -22,7 +22,7 @@ public class ButtonServiceImpl implements ButtonService {
     private final MessageSource messageSource;
 
     @Override
-    public synchronized void setMenuButtons(SendMessage sendMessage) {
+    public void setMenuButtons(SendMessage sendMessage) {
         String testing = messageSource.getMessage("testing", null, Locale.getDefault());
         String statistic = messageSource.getMessage("statistic", null, Locale.getDefault());
 
@@ -38,7 +38,7 @@ public class ButtonServiceImpl implements ButtonService {
     }
 
     @Override
-    public synchronized void setTicketButtons(SendMessage sendMessage) {
+    public void setTicketButtons(SendMessage sendMessage) {
         val replyKeyboardMarkup = new ReplyKeyboardMarkup();
         val keyboard = createKeyboardTemplate(replyKeyboardMarkup, sendMessage);
 
@@ -66,14 +66,14 @@ public class ButtonServiceImpl implements ButtonService {
     }
 
     @Override
-    public synchronized void setAnswerButtons(SendMessage sendMessage, int count) {
+    public void setAnswerButtons(SendMessage sendMessage, int count) {
         val replyKeyboardMarkup = new ReplyKeyboardMarkup();
         val keyboard = createKeyboardTemplate(replyKeyboardMarkup, sendMessage);
         createButtons(count, replyKeyboardMarkup, keyboard);
     }
 
     @Override
-    public synchronized void setAnswerButtonsByPhoto(SendPhoto sendPhoto, int count) {
+    public void setAnswerButtonsByPhoto(SendPhoto sendPhoto, int count) {
         val replyKeyboardMarkup = new ReplyKeyboardMarkup();
         sendPhoto.setReplyMarkup(replyKeyboardMarkup);
         replyKeyboardMarkup.setSelective(true);
