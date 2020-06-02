@@ -75,7 +75,7 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
 
     @Override
     public SendMessage checkAnswer(Long chatId, String text, List<Option> options, String userName, Map<String, UserDto> users) {
-        User user = userService.findByUsername(userName);
+        User user = userService.findByChatId(chatId);
         Option selectedOption = options.get(Integer.parseInt(text) - 1);
         answerUserService.saveAnswerUser(user, selectedOption);
 
@@ -119,7 +119,7 @@ public class PrepareMessageServiceImpl implements PrepareMessageService {
 
     @Override
     public SendMessage prepareStatistics(Long chatId, String userName) {
-        User user = userService.findByUsername(userName);
+        User user = userService.findByChatId(chatId);
         List<AnswerUser> answerUserByUser = answerUserService.findAnswerUserByUser(user);
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i <= 40; i++) {

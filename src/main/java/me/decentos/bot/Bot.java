@@ -69,7 +69,7 @@ public class Bot extends TelegramLongPollingBot {
         String selectedTicket = messageSource.getMessage("selected.ticket", new String[]{text.substring(1)}, Locale.getDefault());
 
         if (text.equals(start) || text.equals(end)) {
-            userService.saveUser(userName);
+            userService.saveUser(chatId, userName);
             users.remove(userName);
             execute(prepareMessageService.prepareMenu(chatId, greeting));
         } else if (text.equals(testing)) {

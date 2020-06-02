@@ -17,14 +17,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public User findByChatId(Long chatId) {
+        return userRepository.findByChatId(chatId);
     }
 
     @Override
-    public void saveUser(String username) {
-        if (findByUsername(username) == null) {
-            userRepository.save(new User(username));
+    public void saveUser(Long chatId, String username) {
+        if (findByChatId(chatId) == null) {
+            userRepository.save(new User(chatId, username));
         }
     }
 }

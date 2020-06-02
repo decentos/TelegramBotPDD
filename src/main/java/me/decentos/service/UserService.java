@@ -3,7 +3,7 @@ package me.decentos.service;
 import me.decentos.model.User;
 
 public interface UserService {
-    User findByUsername(String username);
+    User findByChatId(Long chatId);
 
-    void saveUser(String username);
+    void saveUser(Long chatId, String username);
 }
