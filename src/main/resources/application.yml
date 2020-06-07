@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    initialization-mode: always
+    url: jdbc:mysql://localhost:3306/telegram_bot_pdd?useUnicode=true&serverTimezone=UTC&useSSL=false
+    username: root
+    password: Consensus69
+
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+
+    show-sql: false
+
+    properties:
+      hibernate:
+        format_sql: true
