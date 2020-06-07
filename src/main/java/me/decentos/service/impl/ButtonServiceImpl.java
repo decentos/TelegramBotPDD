@@ -1,7 +1,8 @@
-package me.decentos.bot;
+package me.decentos.service.impl;
 
 import lombok.val;
-import org.springframework.stereotype.Component;
+import me.decentos.service.ButtonService;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -11,9 +12,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
-public class Button {
+@Service
+public class ButtonServiceImpl implements ButtonService {
 
+    @Override
     public synchronized void setTicketButtons(SendMessage sendMessage) {
         val replyKeyboardMarkup = new ReplyKeyboardMarkup();
         val keyboard = createKeyboardTemplate(replyKeyboardMarkup, sendMessage);
@@ -41,12 +43,14 @@ public class Button {
         replyKeyboardMarkup.setKeyboard(keyboard);
     }
 
+    @Override
     public synchronized void setAnswerButtons(SendMessage sendMessage, int count) {
         val replyKeyboardMarkup = new ReplyKeyboardMarkup();
         val keyboard = createKeyboardTemplate(replyKeyboardMarkup, sendMessage);
         createButtons(count, replyKeyboardMarkup, keyboard);
     }
 
+    @Override
     public synchronized void setAnswerButtonsByPhoto(SendPhoto sendPhoto, int count) {
         val replyKeyboardMarkup = new ReplyKeyboardMarkup();
         sendPhoto.setReplyMarkup(replyKeyboardMarkup);

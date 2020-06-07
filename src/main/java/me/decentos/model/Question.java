@@ -18,8 +18,8 @@ public class Question {
     @Column(name = "question_id")
     private int id;
 
-    @Column(name = "ticket")
-    private int ticket;
+    @Embedded
+    private Ticket ticket;
 
     @Column(name = "question_title")
     private String questionTitle;
