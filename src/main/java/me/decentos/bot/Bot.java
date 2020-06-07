@@ -15,7 +15,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.HashMap;
@@ -54,10 +53,8 @@ public class Bot extends TelegramLongPollingBot {
     @SneakyThrows
     @Override
     public void onUpdateReceived(Update update) {
-        Message message = update.getMessage();
-        update.getMessage();
+        String text = update.getMessage().getText();
         Long chatId = update.getMessage().getChatId();
-        String text = message.getText();
         String userName = update.getMessage().getFrom().getUserName();
 
         String start = messageSource.getMessage("start", null, Locale.getDefault());
