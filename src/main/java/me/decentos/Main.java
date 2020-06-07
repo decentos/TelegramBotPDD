@@ -11,3 +11,7 @@ public class Main {
         SpringApplication.run(Main.class, args);
     }
 }
+
+// TODO переписать на WebHook
+// TODO оплата штрафов
+// TODO поиск ближайших сервисов и моек

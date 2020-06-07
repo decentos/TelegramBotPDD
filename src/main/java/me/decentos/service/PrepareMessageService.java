@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface PrepareMessageService {
+    SendMessage prepareMenu(Long chatId, String greeting);
+
     SendMessage prepareMessage(Long chatId, String answer, String text);
 
     SendMessage prepareQuestion(Long chatId, String question, int size);
@@ -23,4 +25,6 @@ public interface PrepareMessageService {
     SendMessage prepareComment(Long chatId, Question question);
 
     SendMessage prepareResult(Long chatId, int correctCount);
+
+    SendMessage prepareStatistics(Long chatId, String username);
 }

@@ -9,12 +9,12 @@ import me.decentos.model.Ticket;
 import me.decentos.service.OptionService;
 import me.decentos.service.PrepareMessageService;
 import me.decentos.service.QuestionService;
+import me.decentos.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.HashMap;
@@ -31,6 +31,7 @@ public class Bot extends TelegramLongPollingBot {
     private final PrepareMessageService prepareMessageService;
     private final QuestionService questionService;
     private final OptionService optionService;
+    private final UserService userService;
     private final MessageSource messageSource;
     private final Map<String, UserDto> users = new HashMap<>();
 
@@ -52,21 +53,26 @@ public class Bot extends TelegramLongPollingBot {
     @SneakyThrows
     @Override
     public void onUpdateReceived(Update update) {
-        Message message = update.getMessage();
-        update.getMessage();
+        String text = update.getMessage().getText();
         Long chatId = update.getMessage().getChatId();
-        String text = message.getText();
         String userName = update.getMessage().getFrom().getUserName();
 
         String start = messageSource.getMessage("start", null, Locale.getDefault());
         String end = messageSource.getMessage("end", null, Locale.getDefault());
+        String greeting = messageSource.getMessage("greeting", null, Locale.getDefault());
+        String testing = messageSource.getMessage("testing", null, Locale.getDefault());
+        String statistic = messageSource.getMessage("statistic", null, Locale.getDefault());
         String selectTicket = messageSource.getMessage("select.ticket", null, Locale.getDefault());
         String selectedTicket = messageSource.getMessage("selected.ticket", new String[]{text.substring(1)}, Locale.getDefault());
 
         if (text.equals(start) || text.equals(end)) {
+            userService.saveUser(chatId, userName);
             users.remove(userName);
+            execute(prepareMessageService.prepareMenu(chatId, greeting));
+        } else if (text.equals(testing)) {
             execute(prepareMessageService.prepareMessage(chatId, selectTicket, text));
-            sleep(1_000);
+        } else if (text.equals(statistic)) {
+            execute(prepareMessageService.prepareStatistics(chatId, userName));
         } else if (text.matches("№\\s\\d*")) {
             sendAfterSelectTicket(chatId, text, userName, selectedTicket);
         } else if (text.matches("\\d*")) {
