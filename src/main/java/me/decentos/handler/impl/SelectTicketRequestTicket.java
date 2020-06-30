@@ -1,7 +1,6 @@
 package me.decentos.handler.impl;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import me.decentos.bot.Bot;
 import me.decentos.dto.UserDto;
 import me.decentos.handler.RequestHandler;
@@ -15,6 +14,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
 import java.util.Locale;
@@ -30,7 +30,7 @@ public class SelectTicketRequestTicket implements RequestHandler {
     private final MessageSource messageSource;
 
     @Override
-    public void handle(String text, Update update, Map<String, UserDto> users, Bot bot) {
+    public void handle(String text, Update update, Map<String, UserDto> users, Bot bot) throws TelegramApiException {
         if (!text.matches("№\\s\\d*")) return;
 
         String selectedTicket = messageSource.getMessage("selected.ticket", new String[]{text.substring(1)}, Locale.getDefault());
@@ -39,8 +39,7 @@ public class SelectTicketRequestTicket implements RequestHandler {
         sendAfterSelectTicket(chatId, text, userName, selectedTicket, users, bot);
     }
 
-    @SneakyThrows
-    private void sendAfterSelectTicket(Long chatId, String text, String userName, String selectedTicket, Map<String, UserDto> users, Bot bot) {
+    private void sendAfterSelectTicket(Long chatId, String text, String userName, String selectedTicket, Map<String, UserDto> users, Bot bot) throws TelegramApiException {
         if (!users.containsKey(userName)) {
             createUser(text, userName, users);
         }
@@ -64,8 +63,7 @@ public class SelectTicketRequestTicket implements RequestHandler {
         users.put(userName, user);
     }
 
-    @SneakyThrows
-    private void sendQuestion(Long chatId, Question question, List<Option> options, Bot bot) {
+    private void sendQuestion(Long chatId, Question question, List<Option> options, Bot bot) throws TelegramApiException {
         sendQuestion(chatId, question, options, bot, prepareMessageService);
     }
 

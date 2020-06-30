@@ -1,6 +1,5 @@
 package me.decentos.bot;
 
-import lombok.SneakyThrows;
 import me.decentos.dto.UserDto;
 import me.decentos.handler.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,10 +39,15 @@ public class Bot extends TelegramLongPollingBot {
         return botToken;
     }
 
-    @SneakyThrows
     @Override
     public void onUpdateReceived(Update update) {
         String text = update.getMessage().getText();
-        handlers.forEach(h -> h.handle(text, update, users, this));
+        handlers.forEach(h -> {
+            try {
+                h.handle(text, update, users, this);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
