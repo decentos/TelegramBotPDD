@@ -1,2 +1,2 @@
 # TelegramBotPDD
-Telegram Bot for studying PDD
+Telegram bot to prepare for the driving test
